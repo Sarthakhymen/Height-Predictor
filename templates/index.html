@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{{ app_name }}</title>
+        <link rel="stylesheet"
+            href="{{ url_for('static', filename='style.css') }}">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="animated-bg">
+                <div class="blob b1"></div>
+                <div class="blob b2"></div>
+                <div class="blob b3"></div>
+            </div>
+            <header class="header">
+                <h1>📏 {{ app_name }}</h1>
+                <p class="credit">Developed by <strong>{{
+                        developer_name }}</strong></p>
+            </header>
+
+            <main class="main-content">
+                <div class="card prediction-card">
+                    <h2>Make a Prediction</h2>
+
+                    <div class="input-group">
+                        <label for="weightInput">Weight (kg)</label>
+                        <div class="input-wrapper">
+                            <input
+                                type="number"
+                                id="weightInput"
+                                placeholder="Enter weight"
+                                min="30"
+                                max="150"
+                                value="70"
+                                step="0.5">
+                            <span class="unit">kg</span>
+                        </div>
+                        <div class="range-slider">
+                            <input
+                                type="range"
+                                id="weightRange"
+                                min="30"
+                                max="150"
+                                value="70"
+                                step="0.5">
+                            <div class="range-labels">
+                                <span>30</span>
+                                <span>150</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="predictHeight()">
+                        🔮 Predict Height
+                    </button>
+                </div>
+
+                <div id="resultContainer" class="result-container"
+                    style="display: none;">
+                    <div class="card result-card">
+                        <h3>Prediction Result</h3>
+                        <div class="result-box">
+                            <div class="result-item">
+                                <span class="label">Predicted Height:</span>
+                                <span class="value" id="heightResult">-</span>
+                                <span class="unit">cm</span>
+                            </div>
+                        </div>
+
+                        <div class="model-details">
+                            <h4>Model Details</h4>
+                            <div class="details-grid">
+                                <div class="detail-item">
+                                    <span class="detail-label">Slope
+                                        (Coefficient):</span>
+                                    <span class="detail-value"
+                                        id="coefficient">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Intercept:</span>
+                                    <span class="detail-value"
+                                        id="intercept">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="formula">
+                            <p><strong>Formula:</strong> Height = <span
+                                    id="intercept-formula">0</span> + <span
+                                    id="coeff-formula">0</span> × (Standardized
+                                Weight)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="errorContainer" class="error-container"
+                    style="display: none;">
+                    <div class="card error-card">
+                        <p id="errorMessage"></p>
+                    </div>
+                </div>
+
+                <!-- BMI Calculator Section -->
+                <div id="bmiContainer" class="bmi-container" style="display: none;">
+                    <div class="card bmi-card">
+                        <h3>💪 BMI Analysis</h3>
+                        <div class="bmi-result">
+                            <div class="bmi-value-section">
+                                <span class="bmi-label">Your BMI:</span>
+                                <span class="bmi-value" id="bmiValue">-</span>
+                            </div>
+                            <div class="bmi-category" id="bmiCategory">
+                                <span class="category-badge">-</span>
+                            </div>
+                        </div>
+                        <div class="bmi-scale">
+                            <div class="scale-bar">
+                                <div class="scale-marker" id="bmiMarker"></div>
+                            </div>
+                            <div class="scale-labels">
+                                <span>Underweight</span>
+                                <span>Normal</span>
+                                <span>Overweight</span>
+                                <span>Obese</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prediction History Section -->
+                <div id="historyContainer" class="history-container" style="display: none;">
+                    <div class="card history-card">
+                        <h3>📜 Prediction History</h3>
+                        <div class="history-list" id="historyList">
+                            <!-- History items will be inserted here -->
+                        </div>
+                        <button class="btn-clear-history" onclick="clearHistory()">🗑️ Clear History</button>
+                    </div>
+                </div>
+
+                <!-- Interactive Chart Section -->
+                <div id="chartContainer" class="chart-container" style="display: none;">
+                    <div class="card chart-card">
+                        <h3>📊 Weight vs Height Visualization</h3>
+                        <canvas id="predictionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Animated Human Visualization -->
+                <div id="humanVisualization" class="human-visualization" style="display: none;">
+                    <div class="card human-card">
+                        <h3>👤 Body Visualization</h3>
+                        <div class="human-container">
+                            <svg id="humanSvg" viewBox="0 0 200 400" xmlns="http://www.w3.org/2000/svg">
+                                <!-- Head -->
+                                <circle id="head" cx="100" cy="40" r="25" fill="#fbbf24" stroke="#f59e0b" stroke-width="2"/>
+                                
+                                <!-- Body (torso) -->
+                                <ellipse id="torso" cx="100" cy="120" rx="35" ry="60" fill="#60a5fa" stroke="#3b82f6" stroke-width="2"/>
+                                
+                                <!-- Arms -->
+                                <line id="leftArm" x1="65" y1="90" x2="40" y2="140" stroke="#3b82f6" stroke-width="8" stroke-linecap="round"/>
+                                <line id="rightArm" x1="135" y1="90" x2="160" y2="140" stroke="#3b82f6" stroke-width="8" stroke-linecap="round"/>
+                                
+                                <!-- Legs -->
+                                <line id="leftLeg" x1="85" y1="180" x2="75" y2="280" stroke="#3b82f6" stroke-width="10" stroke-linecap="round"/>
+                                <line id="rightLeg" x1="115" y1="180" x2="125" y2="280" stroke="#3b82f6" stroke-width="10" stroke-linecap="round"/>
+                                
+                                <!-- Facial features -->
+                                <circle cx="90" cy="38" r="3" fill="#1f2937"/>
+                                <circle cx="110" cy="38" r="3" fill="#1f2937"/>
+                                <path d="M 90 48 Q 100 52 110 48" stroke="#1f2937" stroke-width="2" fill="none"/>
+                            </svg>
+                            <div class="human-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Height:</span>
+                                    <span class="stat-value" id="humanHeight">-</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Weight:</span>
+                                    <span class="stat-value" id="humanWeight">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Disclaimer Section -->
+                <div class="disclaimer-card card">
+                    <h3>⚠️ Model Disclaimer</h3>
+                    <p class="disclaimer-text">
+                        <strong>Important Notice:</strong> This predictive model has been trained on a limited range of height-weight data. 
+                        The predictions provided are <strong>not guaranteed to be 100% accurate</strong> and should be considered as estimates only.
+                    </p>
+                    <p class="disclaimer-text">
+                        <strong>Training Range:</strong> Weight between 30-150 kg
+                    </p>
+                    <p class="disclaimer-text">
+                        Factors such as age, gender, bone density, muscle mass, and genetic variations are not accounted for in this simple linear regression model. 
+                        For medical purposes or accurate body measurements, please consult a healthcare professional.
+                    </p>
+                    <div class="disclaimer-footer">
+                        <p>📊 Model Type: <strong>Simple Linear Regression (SLR)</strong></p>
+                        <p>🎯 Purpose: <strong>Educational Demonstration</strong></p>
+                    </div>
+                </div>
+            </main>
+
+            <footer class="footer">
+                <p>Built with ❤️ | {{ app_name }} — Developed by {{
+                    developer_name }}</p>
+            </footer>
+        </div>
+
+        <script src="{{ url_for('static', filename='script.js') }}"></script>
+    </body>
+</html>
