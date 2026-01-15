@@ -12,7 +12,16 @@ DEVELOPER_NAME = "SARTHAK SHAVARN"
 
 # Train the model
 def load_model():
-    df = pd.read_csv("height-weight.csv")
+    # Use absolute path for Vercel environment
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    csv_path = os.path.join(base_dir, "height-weight.csv")
+    
+    if not os.path.exists(csv_path):
+        print(f"Error: CSV file not found at {csv_path}")
+        # Create dummy data if file missing to prevent crash
+        df = pd.DataFrame({'Weight': [30, 150], 'Height': [120, 200]})
+    else:
+        df = pd.read_csv(csv_path)
     x = df[['Weight']]
     y = df['Height']
 
